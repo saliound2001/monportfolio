@@ -1,0 +1,123 @@
+<!-- Modale Portfolio : Outil de Chiffrement RSA -->
+<div id="modal-rsa" class="modal">
+    <link rel="stylesheet" href="rsa.css">
+    
+  <div class="modal-content rsa-card">
+    <span class="close-btn" onclick="fermerModal()">&times;</span>
+    <h2>🔐 Chiffrement & Déchiffrement RSA</h2>
+
+    <!-- Section Génération de Clés -->
+    <div class="rsa-section">
+      <h3>1. Clés RSA</h3>
+      <button class="btn-primary" onclick="genererClesRSA()">Générer une paire de clés</button>
+      <div class="keys-display">
+        <p><strong>Clé publique (e, n) :</strong> <span id="pub-key">-</span></p>
+        <p><strong>Clé privée (d, n) :</strong> <span id="priv-key">-</span></p>
+      </div>
+    </div>
+
+    <!-- Section Chiffrement / Déchiffrement -->
+    <div class="rsa-grid">
+      <div class="rsa-box">
+        <h3>Chiffrer un message</h3>
+        <input type="text" id="input-texte" placeholder="Entrez un texte...">
+        <button class="btn-action" onclick="chiffrerRSA()">Chiffrer</button>
+        <div class="output-box" id="output-chiffre">Résultat chiffré...</div>
+      </div>
+
+      <div class="rsa-box">
+        <h3>Déchiffrer un message</h3>
+        <input type="text" id="input-chiffre" placeholder="Entrez le code chiffré...">
+        <button class="btn-action btn-green" onclick="dechiffrerRSA()">Déchiffrer</button>
+        <div class="output-box" id="output-dechiffre">Résultat déchiffré...</div>
+      </div>
+    </div>
+  </div>
+
+      <script>
+        let rsaKeys = { e: 0, d: 0, n: 0 };
+
+// Algorithme d'Euclide étendu
+function modInverseJS(e, phi) {
+  let m0 = phi, t, q;
+  let x0 = 0, x1 = 1;
+  if (phi === 1) return 0;
+  while (e > 1) {
+    q = Math.floor(e / phi);
+    t = phi; phi = e % phi; e = t;
+    t = x0; x0 = x1 - q * x0; x1 = t;
+  }
+  if (x1 < 0) x1 += m0;
+  return x1;
+}
+
+// Exponentiation modulaire (BigInt pour éviter les dépassements de capacité)
+function modExpoJS(base, exp, mod) {
+  let res = 1n;
+  base = BigInt(base) % BigInt(mod);
+  exp = BigInt(exp);
+  let m = BigInt(mod);
+  while (exp > 0n) {
+    if (exp % 2n === 1n) res = (res * base) % m;
+    exp = exp / 2n;
+    base = (base * base) % m;
+  }
+  return Number(res);
+}
+
+// Génération de clés basique pour la démo
+function genererClesRSA() {
+  const p = 61, q = 53; // Nombres premiers de démonstration
+  const n = p * q;
+  const phi = (p - 1) * (q - 1);
+  const e = 17;
+  const d = modInverseJS(e, phi);
+
+  rsaKeys = { e, d, n };
+
+  document.getElementById('pub-key').innerText = `(${e}, ${n})`;
+  document.getElementById('priv-key').innerText = `(${d}, ${n})`;
+}
+
+// Chiffrement chaîne vers tableau de nombres
+function chiffrerRSA() {
+  if (!rsaKeys.n) {
+    alert("Veuillez générer les clés RSA d'abord.");
+    return;
+  }
+  const texte = document.getElementById('input-texte').value;
+  const codesChiffres = [];
+
+  for (let i = 0; i < texte.length; i++) {
+    const charCode = texte.charCodeAt(i);
+    const chiffre = modExpoJS(charCode, rsaKeys.e, rsaKeys.n);
+    codesChiffres.push(chiffre);
+  }
+
+  document.getElementById('output-chiffre').innerText = codesChiffres.join(' ');
+}
+
+// Déchiffrement tableau de nombres vers chaîne
+function dechiffrerRSA() {
+  if (!rsaKeys.n) {
+    alert("Veuillez générer les clés RSA d'abord.");
+    return;
+  }
+  const input = document.getElementById('input-chiffre').value.trim();
+  if (!input) return;
+
+  const codes = input.split(' ').map(Number);
+  let texteDechiffre = "";
+
+  for (let code of codes) {
+    if (!isNaN(code)) {
+      const charCode = modExpoJS(code, rsaKeys.d, rsaKeys.n);
+      texteDechiffre += String.fromCharCode(charCode);
+    }
+  }
+
+  document.getElementById('output-dechiffre').innerText = texteDechiffre;
+}
+      </script>
+
+</div>
