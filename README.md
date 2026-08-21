@@ -1,47 +1,109 @@
-# Portfolio — README
+# Sama Hair Glow — Site E-commerce
 
-## Structure
+Site e-commerce complet (huiles capillaires & voiles) avec panier, calcul automatique du total, et paiement mobile money (Orange Money / Wave).
+
+## 📁 Structure du projet
+
 ```
-portfolio/
-├── index.html              # Page principale
-├── css/style.css           # Styles (thème sombre bleu/cyan)
-├── js/script.js            # Interactions (menu, typewriter, animations, envoi du formulaire)
-├── php/contact.php         # Traitement du formulaire de contact (mail())
-└── assets/
-    ├── img/                # Placeholders SVG à remplacer par tes vraies images
-    └── CV.pdf              # À ajouter : ton CV en PDF (référencé par le bouton "Télécharger CV")
+sama-hair-glow/
+├── frontend/              → Le site (HTML/CSS/JS, à héberger tel quel)
+│   ├── index.html          Page d'accueil
+│   ├── boutique.html       Catalogue avec filtres (huiles / voiles)
+│   ├── produit.html        Fiche produit
+│   ├── panier.html         Panier (calcul automatique du total)
+│   ├── checkout.html       Paiement (Orange Money / Wave)
+│   ├── confirmation.html   Confirmation de commande
+│   ├── css/style.css
+│   └── js/
+│       ├── data.js         Catalogue produits
+│       ├── cart.js         Moteur du panier
+│       └── api.js          Connexion au backend
+│
+└── backend/                → API sécurisée (Node.js + Express + SQLite)
+    ├── server.js
+    ├── db/
+    │   ├── database.js     Connexion + création des tables (requêtes préparées)
+    │   └── seed.js         Remplissage initial des produits
+    ├── routes/
+    │   ├── produits.js
+    │   ├── commandes.js     Création de commande (montants recalculés côté serveur)
+    │   └── paiement.js      Intégration Orange Money & Wave
+    └── .env.example
 ```
 
-## À personnaliser avant le rendu
-1. **index.html**
-   - Remplace `Ton Nom`, `TonAlias`, le texte "À propos", le parcours académique.
-   - Remplace les 3 cartes projets (titres, descriptions, technos, liens réels).
-   - Mets à jour les coordonnées (téléphone, email, liens réseaux sociaux).
-2. **assets/img/**
-   - Remplace `profil-placeholder.svg` par ta vraie photo (garde le même nom de fichier ou mets à jour le `src` dans le HTML).
-   - Remplace les 3 `projet-*-placeholder.svg` par des captures d'écran réelles.
-3. **assets/CV.pdf**
-   - Ajoute ton CV à cet emplacement (le bouton "Télécharger CV" pointe déjà dessus).
-4. **php/contact.php**
-   - Change `$destinataire` par ta vraie adresse email.
+## 🔒 Sécurité mise en place
 
-## Tester en local (avec PHP)
-Le formulaire de contact nécessite un serveur PHP pour fonctionner (la fonction `mail()` ne marche pas avec un simple double-clic sur le fichier HTML) :
+- **Protection contre les injections SQL** : toutes les requêtes utilisent des *prepared statements* (`db.prepare(...).run(?, ?, ?)`), jamais de concaténation de texte dans le SQL. Testé avec plusieurs tentatives d'injection (`' OR '1'='1`, `; DROP TABLE ...`) — aucune n'a fonctionné.
+- **Validation des données** : chaque champ envoyé par le client est vérifié (téléphone, méthode de paiement, panier non vide...).
+- **Montants recalculés côté serveur** : le total n'est jamais pris tel quel depuis le navigateur — il est recalculé à partir des prix réels en base, pour empêcher toute tentative de trafiquer le prix.
+- **Limitation de débit (rate limiting)** : 60 requêtes/minute/IP pour limiter les abus.
+- **CORS restreint** : seul le domaine du site pourra appeler l'API une fois configuré (`FRONTEND_URL` dans `.env`).
 
+## ▶️ Lancer le site en local (pour tester)
+
+**1. Backend :**
 ```bash
-cd portfolio
-php -S localhost:8000
+cd backend
+npm install
+cp .env.example .env
+node server.js
 ```
-Puis ouvre `http://localhost:8000` dans ton navigateur.
+→ API disponible sur `http://localhost:4000`
 
-⚠️ En local, `mail()` échoue généralement car aucun serveur SMTP n'est configuré sur ta machine — c'est normal. Le formulaire fonctionnera une fois déployé sur un hébergement qui supporte `mail()` (ou PHPMailer/SMTP).
+**2. Frontend :**
+Ouvre `frontend/index.html` avec l'extension "Live Server" de VS Code, ou :
+```bash
+cd frontend
+npx serve .
+```
+Puis modifie `frontend/js/api.js` si besoin (`API_BASE_URL`).
 
-## Déployer (le sujet d'examen demande un déploiement, pas juste du local)
-Comme le projet utilise PHP, GitHub Pages ne suffit pas (il ne sert que du HTML/CSS/JS statique). Options simples et gratuites :
-- **InfinityFree** ou **000webhost** : hébergement mutualisé gratuit avec PHP + `mail()`.
-- **Railway** / **Render** : déploiement via Git, supporte PHP avec un buildpack.
-- Héberger uniquement la partie statique sur GitHub Pages et faire pointer le formulaire vers un petit backend PHP hébergé ailleurs (ex. InfinityFree) — utile si tu veux garder GitHub Pages pour la vitrine.
+## 🚀 Mettre le site en ligne
 
-## Prochaines améliorations possibles
-- Remplacer `mail()` par PHPMailer + SMTP pour une délivrabilité fiable en production.
-- Ajouter un champ honeypot caché (`<input type="text" name="website" style="display:none">`) dans le formulaire pour renforcer l'anti-spam déjà prévu côté PHP.
+Deux parties à héberger séparément :
+
+### Frontend (le site)
+Le dossier `frontend/` est un site statique. Options simples et gratuites/pas chères :
+- **Netlify** ou **Vercel** : glisser-déposer le dossier `frontend/`, en 2 minutes c'est en ligne.
+- Un hébergeur classique (o2switch, Hostinger...) avec upload FTP.
+
+### Backend (l'API)
+Le dossier `backend/` doit tourner sur un serveur Node.js en continu :
+- **Render.com** ou **Railway.app** : connectent directement à un dépôt GitHub, gratuit pour démarrer.
+- Ensuite configurer les variables d'environnement (`.env`) sur la plateforme choisie.
+
+### Étapes une fois hébergé
+1. Note l'URL du backend (ex : `https://sama-api.onrender.com`).
+2. Dans `frontend/js/api.js`, remplace la ligne `API_BASE_URL` pour pointer vers cette URL.
+3. Dans `backend/.env`, mets `FRONTEND_URL` = l'URL réelle du site (pour le CORS).
+4. Achète un nom de domaine (ex : `samahairglow.com`) chez Namecheap, Google Domains ou un registrar sénégalais, et connecte-le à Netlify/Vercel.
+
+## 💳 Activer les paiements réels (Orange Money & Wave)
+
+Le code est déjà prêt dans `backend/routes/paiement.js` avec la structure exacte des appels API. Tant que les clés ne sont pas renseignées, le site fonctionne en **mode démo** (les commandes se créent normalement, sans vrai débit).
+
+**Pour activer Orange Money :**
+1. Créer un compte sur [developer.orange.com](https://developer.orange.com) → devenir marchand Orange Money.
+2. Récupérer la clé API et la clé marchande.
+3. Les renseigner dans `.env` : `ORANGE_MONEY_API_KEY`, `ORANGE_MONEY_MERCHANT_KEY`.
+
+**Pour activer Wave :**
+1. Créer un compte sur [business.wave.com](https://business.wave.com).
+2. Récupérer la clé API dans le tableau de bord marchand.
+3. La renseigner dans `.env` : `WAVE_API_KEY`.
+
+Une fois ces clés ajoutées, le site basculera automatiquement en paiement réel — aucun changement de code nécessaire.
+
+## ✅ Ce qui a été testé
+
+- Navigation accueil → boutique → fiche produit → panier → checkout → confirmation
+- Ajout/suppression/modification de quantité dans le panier, total recalculé automatiquement
+- Filtres par catégorie (huiles / voiles)
+- Création de commande côté API avec recalcul du total
+- Tentatives d'injection SQL sur plusieurs endpoints (échouées, comme prévu)
+
+## 📌 Prochaines étapes suggérées
+
+- Remplacer les photos de démonstration par tes vraies photos produits
+- Ajouter un espace "administration" pour gérer stock/commandes facilement
+- Ajouter l'envoi de SMS/WhatsApp de confirmation automatique au client
