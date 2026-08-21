@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#131e33"/>
+      <stop offset="100%" stop-color="#0e1626"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#g)"/>
+  <rect x="40" y="40" width="560" height="30" rx="6" fill="#1e2a42"/>
+  <rect x="40" y="90" width="380" height="18" rx="4" fill="#1e2a42"/>
+  <rect x="40" y="120" width="260" height="18" rx="4" fill="#1e2a42"/>
+  <circle cx="560" cy="330" r="3" fill="#22d3ee"/>
+  <text x="320" y="220" font-family="monospace" font-size="18" fill="#3b82f6" text-anchor="middle">Capture du projet portfolio</text>
+</svg>
